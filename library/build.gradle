@@ -1,0 +1,64 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
+}
+apply from: 'https://gitee.com/sunnyfor/GradleConfig/raw/master/config.gradle'
+
+android {
+    namespace 'com.sunny.zyplayer'
+    compileSdk project.ext.android.compileSdkVersion
+
+    defaultConfig {
+        minSdk project.ext.android.minSdkVersion
+        targetSdk project.ext.android.targetSdkVersion
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    implementation project.ext.dependencies.constraintLayout
+    implementation project.ext.dependencies.coreKtx
+    implementation project.ext.dependencies.appcompat
+    //base框架
+    //工具框架
+    api 'com.github.Sunnyfor:ZyKit:1.0.3'
+    //base框架
+    implementation 'com.github.Sunnyfor:ZyBase:1.0.1'
+    implementation "androidx.media3:media3-exoplayer:1.1.0"
+    implementation "androidx.media3:media3-ui:1.1.0"
+
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.Sunnyfor'
+                artifactId = 'ZyPlyer'
+                version = '1.0.0'
+            }
+        }
+    }
+}
