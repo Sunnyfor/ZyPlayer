@@ -47,7 +47,6 @@ class ZyPlayerView : RelativeLayout {
         playerView.setShowRewindButton(false)
         playerView.setShowFastForwardButton(false)
         playerView.setShowPreviousButton(false)
-        playerView.setFullscreenButtonClickListener {}
         playerView.setShowNextButton(false)
         val subtitleUri = subtitleBean?.uri
         if (subtitleUri != null) {
