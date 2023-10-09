@@ -14,7 +14,6 @@
         android:id="@+id/clTitle"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#50000000"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.appcompat.widget.AppCompatImageButton
@@ -24,23 +23,6 @@
             android:layout_height="match_parent"
             android:src="@drawable/zy_svg_title_back"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@id/tvTitle"
-            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:lines="1"
-            android:maxEms="8"
-            android:scrollHorizontally="false"
-            android:text="@string/videoPlay"
-            android:textColor="@android:color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>

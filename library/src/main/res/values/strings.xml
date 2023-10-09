@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="videoPlay">视频播放</string>
+    <string name="timeSplit">/</string>
+    <string name="defaultNumber">0</string>
+    <string name="defaultTime">00:00</string>
 </resources>

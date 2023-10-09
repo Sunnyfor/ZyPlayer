@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/dp_50"
+    android:layout_gravity="bottom"
+    android:background="@color/zy_bg_window"
+    android:layoutDirection="ltr"
+    android:paddingBottom="@dimen/dp_10"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent">
+
+
+    <androidx.media3.ui.DefaultTimeBar
+        android:id="@+id/timeBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dp_10"
+        android:layout_marginEnd="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:played_color="@color/colorTheme"
+        app:scrubber_drawable="@drawable/zy_player_controls_thumb" />
+
+    <LinearLayout
+        android:id="@+id/llPlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/timeBar">
+
+        <ImageView
+            android:id="@+id/ivPlay"
+            android:layout_width="@dimen/dp_20"
+            android:layout_height="@dimen/dp_20"
+            android:layout_marginStart="@dimen/dp_11"
+            android:contentDescription="@null"
+            android:src="@drawable/zy_player_controls_pause" />
+
+        <Button
+            android:id="@+id/btnForward"
+            android:layout_width="@dimen/dp_16"
+            android:layout_height="@dimen/dp_16"
+            android:layout_marginStart="@dimen/dp_11"
+            android:background="@drawable/zy_player_controls_fwd" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|start"
+        android:layout_marginStart="@dimen/dp_11"
+        android:layoutDirection="ltr"
+        app:layout_constraintBottom_toBottomOf="@id/llPlay"
+        app:layout_constraintStart_toEndOf="@id/llPlay"
+        app:layout_constraintTop_toTopOf="@id/llPlay">
+
+        <TextView
+            android:id="@+id/tvPosition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/defaultTime"
+            android:textColor="#93A2BA"
+            android:textSize="@dimen/dp_12" />
+
+        <TextView
+            style="@style/ExoStyledControls.TimeText.Separator"
+            android:text="@string/timeSplit"
+            android:textSize="@dimen/dp_12" />
+
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/defaultTime"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/dp_12" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        app:layout_constraintBottom_toBottomOf="@id/llPlay"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/llTime"
+        app:layout_constraintTop_toTopOf="@id/llPlay">
+
+        <ImageView
+            android:id="@+id/ivFullscreen"
+            android:layout_width="@dimen/dp_20"
+            android:layout_height="@dimen/dp_20"
+            android:layout_marginEnd="@dimen/dp_9"
+            android:contentDescription="@null"
+            android:src="@drawable/zy_player_controls_fullscreen_enter" />
+
+
+        <ImageView
+            android:id="@+id/ivVolume"
+            android:layout_width="@dimen/dp_20"
+            android:layout_height="@dimen/dp_20"
+            android:layout_marginEnd="@dimen/dp_11"
+            android:contentDescription="@null"
+            android:padding="@dimen/dp_2"
+            android:src="@drawable/zy_player_controls_volume" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

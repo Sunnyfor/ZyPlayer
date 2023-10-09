@@ -6,8 +6,8 @@ import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.view.View
 import android.view.WindowManager
-import androidx.media3.exoplayer.ExoPlayer
 import com.sunny.zy.base.BaseActivity
+import com.sunny.zyplayer.ZyPlayerView
 import com.sunny.zyplayer.bean.ZySubtitleBean
 import com.sunny.zyplayer.databinding.ActivityVideoBinding
 
@@ -37,7 +37,6 @@ class VideoActivity : BaseActivity() {
 
     private val viewBinding by lazy { ActivityVideoBinding.inflate(layoutInflater) }
 
-    private val player by lazy { ExoPlayer.Builder(this).build() }
 
     private val title: String by lazy { intent.getStringExtra("title") ?: "" }
 
@@ -49,31 +48,33 @@ class VideoActivity : BaseActivity() {
 
     override fun initView() {
         statusBar.setBackgroundColor(Color.BLACK)
-        if (title.isNotEmpty()) {
-            viewBinding.tvTitle.text = title
-        }
-        viewBinding.videoView.setPlayer(player)
 
         viewBinding.videoView.setVideoUrl(videoUrl, subtitleBean, true)
+
+        viewBinding.videoView.setControllerShowTimeoutMs(0)
+        viewBinding.videoView.setControllerHideOnTouch(false)
 
         viewBinding.videoView.setControllerVisibilityListener {
             viewBinding.clTitle.visibility = it
         }
-        viewBinding.videoView.setFullscreenButtonClickListener {
-            if (it) {
-                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-                supportActionBar?.hide()
-                hideStatusBar()
+        viewBinding.videoView.setFullScreenModeChangedListener(object : ZyPlayerView.OnFullScreenModeChangedListener {
+            override fun onFullScreenModeChanged(isFullScreen: Boolean) {
+                if (isFullScreen) {
+                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+                    supportActionBar?.hide()
+                    hideStatusBar()
 
-            } else {
-                requestedOrientation = screenOrientation
-                window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-                supportActionBar?.show()
-                showStatusBar()
+                } else {
+                    requestedOrientation = screenOrientation
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+                    supportActionBar?.show()
+                    showStatusBar()
 
+                }
             }
-        }
+
+        })
         setOnClickListener(viewBinding.ibBack)
     }
 
@@ -90,7 +91,7 @@ class VideoActivity : BaseActivity() {
     }
 
     override fun onClose() {
-        player.release()
+        viewBinding.videoView.release()
     }
 
 }

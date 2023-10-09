@@ -1,6 +1,5 @@
 package com.sunny.zyplayer.widget
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -10,7 +9,6 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
-import com.sunny.kit.utils.LogUtil
 import com.sunny.zyplayer.R
 
 
@@ -110,7 +108,6 @@ class VerticalSeekBar : View {
         rectF.left = progressBar.left
         rectF.right = progressBar.right
         rectF.top = progressY
-        LogUtil.i("高度：$progressY")
         rectF.bottom = progressBar.bottom
         canvas.drawRoundRect(rectF, radius, radius, paint)
 
@@ -132,7 +129,7 @@ class VerticalSeekBar : View {
 //        LogUtil.i("值:$progressY")
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
 
         when (event.action) {
@@ -153,8 +150,17 @@ class VerticalSeekBar : View {
                 }
                 return true
             }
+
+            MotionEvent.ACTION_UP -> {
+                performClick()
+            }
         }
         return super.onTouchEvent(event)
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
     }
 
     fun getProgress(): Int {
@@ -164,6 +170,7 @@ class VerticalSeekBar : View {
     fun setProgress(progress: Int) {
         this.progress = progress
         invalidate()
+        onSeekBarChangeListener?.onProgressChanged(this, progress, true)
     }
 
     fun getMax(): Int {
@@ -173,6 +180,7 @@ class VerticalSeekBar : View {
     fun setMax(max: Int) {
         this.max = max
         invalidate()
+        onSeekBarChangeListener?.onProgressChanged(this, progress, true)
     }
 
 
@@ -184,6 +192,6 @@ class VerticalSeekBar : View {
 
 
     interface OnSeekBarChangeListener {
-        fun onProgressChanged(seekBar: VerticalSeekBar?, progress: Int, fromUser: Boolean)
+        fun onProgressChanged(seekBar: VerticalSeekBar, progress: Int, fromUser: Boolean)
     }
 }
