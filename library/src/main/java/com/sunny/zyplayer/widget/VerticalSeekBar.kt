@@ -11,6 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.sunny.kit.utils.LogUtil
+import com.sunny.zyplayer.R
 
 
 class VerticalSeekBar : View {
@@ -18,16 +19,21 @@ class VerticalSeekBar : View {
     private val paint = Paint().apply {
         isAntiAlias = true
         style = Paint.Style.FILL
-        color = Color.RED
     }
 
     private val progressBar = RectF()
     private val rectF = RectF()
     private val thumb = RectF()
     private val thumbBorder = RectF()
+    private var thumbSize = 0f
+    private val thumbBorderSize by lazy {
+        thumbSize / 6
+    }
+    private var progressSize = 0f
     private var progress = 0
-    private var max = 100
-    private var min = 0
+    private var max = 0
+
+    var onSeekBarChangeListener: OnSeekBarChangeListener? = null
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -36,24 +42,64 @@ class VerticalSeekBar : View {
         attrs,
         defStyleAttr
     ) {
+        val typeArray = context.obtainStyledAttributes(attrs, R.styleable.VerticalSeekBar)
+        val thumbSizeId = typeArray.getResourceId(R.styleable.VerticalSeekBar_thumbSize, 0)
+
+        thumbSize = if (thumbSizeId != 0) {
+            resources.getDimension(thumbSizeId)
+        } else {
+            typeArray.getDimension(R.styleable.VerticalSeekBar_thumbSize, 0f)
+        }
+
+        val progressSizeId = typeArray.getResourceId(R.styleable.VerticalSeekBar_progressSize, 0)
+        progressSize = if (progressSizeId != 0) {
+            resources.getDimension(progressSizeId)
+        } else {
+            typeArray.getDimension(R.styleable.VerticalSeekBar_progressSize, 0f)
+        }
+
+        max = (attrs?.getAttributeValue("http://schemas.android.com/apk/res/android", "max") ?: "100").toInt()
+        typeArray.recycle()
     }
 
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        val measuredWidth = MeasureSpec.getSize(widthMeasureSpec)
-        val measuredHeight = MeasureSpec.getSize(heightMeasureSpec)
-        thumb.set(0f, measuredHeight - measuredWidth.toFloat(), measuredWidth.toFloat(), measuredHeight.toFloat())
-        thumbBorder.set(5f, thumb.top + 5, thumb.right + 5, thumb.bottom + 5)
-        val progressBarWidth = measuredWidth.toFloat() / 3
-        progressBar.set(progressBarWidth, 0f, progressBarWidth * 2, measuredHeight.toFloat())
+        var width = MeasureSpec.getSize(widthMeasureSpec)
+        val widthMode = MeasureSpec.getMode(widthMeasureSpec)
+        var height = MeasureSpec.getSize(heightMeasureSpec)
+        val heightMode = MeasureSpec.getMode(heightMeasureSpec)
+
+        if (thumbSize == 0f) {
+            thumbSize = resources.getDimension(com.sunny.zy.R.dimen.dp_16)
+        }
+
+        if (progressSize == 0f) {
+            progressSize = thumbSize / 3
+        }
+
+        if (widthMode == MeasureSpec.AT_MOST) {
+            width = thumbSize.toInt() * 2
+        }
+
+        if (heightMode == MeasureSpec.AT_MOST) {
+            height = resources.getDimension(com.sunny.zy.R.dimen.dp_100).toInt()
+        }
+
+        setMeasuredDimension(width, height)
+
+
+        val thumbLeft = (width - thumbSize) / 2
+        thumbBorder.set(thumbLeft, height - thumbSize, thumbSize + thumbLeft, height.toFloat())
+        thumb.set(thumbBorderSize, thumb.top + thumbBorderSize, thumb.right - thumbBorderSize, thumb.bottom - thumbBorderSize)
+        val progressLeft = (width - progressSize) / 2
+        progressBar.set(progressLeft, 0f, progressSize + progressLeft, height.toFloat())
     }
 
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val radius = width / 2f
+        val radius = progressBar.right / 2f
         // 绘制进度条
         paint.color = getColorWithAlpha(0.1f, ContextCompat.getColor(context, com.sunny.zy.R.color.colorTheme))
         canvas.drawRoundRect(progressBar, radius, radius, paint)
@@ -68,19 +114,21 @@ class VerticalSeekBar : View {
         rectF.bottom = progressBar.bottom
         canvas.drawRoundRect(rectF, radius, radius, paint)
 
-        // 绘制滑块
-        val thumbScope = progressBar.bottom - width
-        val thumbY = thumbScope - progress * thumbScope / max
-        thumb.bottom = thumbY + width
-        thumb.top = thumbY
-        canvas.drawRoundRect(thumb, radius, radius, paint)
 
-//        paint.color = Color.WHITE
-//        thumbBorder.left = thumb.left + 5
-//        thumbBorder.top = thumb.top + 5
-//        thumbBorder.right = thumb.right + 5
-//        thumbBorder.bottom = thumb.bottom + 5
-//        canvas.drawRoundRect(thumbBorder, radius, radius, paint)
+        paint.color = Color.WHITE
+        val thumbScope = progressBar.bottom - thumbSize
+        val thumbY = thumbScope - progress * thumbScope / max
+        thumbBorder.bottom = thumbY + thumbSize
+        thumbBorder.top = thumbY
+        canvas.drawRoundRect(thumbBorder, radius, radius, paint)
+
+        // 绘制滑块
+        paint.color = ContextCompat.getColor(context, com.sunny.zy.R.color.colorTheme)
+        thumb.left = thumbBorder.left + thumbBorderSize
+        thumb.top = thumbBorder.top + thumbBorderSize
+        thumb.right = thumbBorder.right - thumbBorderSize
+        thumb.bottom = thumbBorder.bottom - thumbBorderSize
+        canvas.drawRoundRect(thumb, radius, radius, paint)
 //        LogUtil.i("值:$progressY")
     }
 
@@ -96,14 +144,14 @@ class VerticalSeekBar : View {
                 if (y > progressBar.bottom) {
                     y = progressBar.bottom
                 }
-//                if (y >= progressBar.top && y <= height) {
-                progress = max - (max * y / height).toInt()
-//                    LogUtil.i("百分比:$progress -----------Y = $y  progressBar.bottom = ${height}  progressabr= ${progressBar.bottom}")
-//                    thumb.bottom += progress
-//                    thumb.top -= progress
-                invalidate()
+
+                val mProgress = max - (max * y / height).toInt()
+                if (mProgress != progress) {
+                    progress = mProgress
+                    invalidate()
+                    onSeekBarChangeListener?.onProgressChanged(this, progress, true)
+                }
                 return true
-//                }
             }
         }
         return super.onTouchEvent(event)
@@ -127,18 +175,15 @@ class VerticalSeekBar : View {
         invalidate()
     }
 
-    fun getMin(): Int {
-        return min
-    }
 
-    fun setMin(min: Int) {
-        this.min = min
-        invalidate()
-    }
-
-    fun getColorWithAlpha(alpha: Float, baseColor: Int): Int {
+    private fun getColorWithAlpha(alpha: Float, baseColor: Int): Int {
         val a = 255.coerceAtMost(0.coerceAtLeast((alpha * 255).toInt())) shl 24
         val rgb = 0x00ffffff and baseColor
         return a + rgb
+    }
+
+
+    interface OnSeekBarChangeListener {
+        fun onProgressChanged(seekBar: VerticalSeekBar?, progress: Int, fromUser: Boolean)
     }
 }
