@@ -6,7 +6,6 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnClickListener
-import androidx.annotation.DrawableRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -14,7 +13,6 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 import androidx.media3.ui.TimeBar
 import com.google.common.collect.ImmutableList
 import com.sunny.zyplayer.bean.ZySubtitleBean
@@ -50,19 +48,30 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
 
     private val player by lazy { ExoPlayer.Builder(context).build() }
 
-    private val updateProgressAction: Runnable by lazy {
+    private val updateProgressAction by lazy {
         Runnable { updateProgress() }
+    }
+
+    private val hideControlViewAction by lazy {
+        Runnable {
+            hideControlView()
+        }
     }
 
     private val viewBinding: ZyLayoutPlayerViewBinding by lazy {
         ZyLayoutPlayerViewBinding.inflate(LayoutInflater.from(context), this, true)
     }
 
+    private var controllerVisibilityListener: ControllerVisibilityListener? = null
     private var onFullScreenModeChangedListener: OnFullScreenModeChangedListener? = null
 
     private val volumeView by lazy {
         VolumeViewPopupWindow(context)
     }
+
+    private var controllerShowTimeoutMs = 5000L
+
+    private var isAnimating = false
 
     init {
         viewBinding.playerView.player = player
@@ -80,6 +89,8 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
         viewBinding.playerControl.ivFullscreen.setOnClickListener(this)
 
         viewBinding.playerControl.ivVolume.setOnClickListener(this)
+
+        setControllerShowTimeoutMs(controllerShowTimeoutMs)
     }
 
     /**
@@ -133,21 +144,43 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
         player.release()
     }
 
-    fun setControllerVisibilityListener(listener: PlayerView.ControllerVisibilityListener) {
-        viewBinding.playerView.setControllerVisibilityListener(listener)
+
+    fun setControllerVisibilityListener(listener: ControllerVisibilityListener) {
+        this.controllerVisibilityListener = listener
     }
 
     fun setFullScreenModeChangedListener(listener: OnFullScreenModeChangedListener) {
         this.onFullScreenModeChangedListener = listener
     }
 
-    fun setControllerHideOnTouch(controllerHideOnTouch: Boolean) {
-        viewBinding.playerView.controllerHideOnTouch = controllerHideOnTouch
+
+    fun setControllerShowTimeoutMs(controllerShowTimeoutMs: Long) {
+        showControlView()
+        this.controllerShowTimeoutMs = controllerShowTimeoutMs
+        val layoutParams = viewBinding.playerView.layoutParams as LayoutParams
+        if (controllerShowTimeoutMs > 0) {
+            layoutParams.bottomToTop = LayoutParams.UNSET
+            layoutParams.bottomToBottom = LayoutParams.PARENT_ID
+        } else {
+            layoutParams.bottomToBottom = LayoutParams.UNSET
+            layoutParams.bottomToTop = R.id.playerControl
+        }
+        updatePlayPauseButton()
     }
 
-    fun setControllerShowTimeoutMs(controllerShowTimeoutMs: Int) {
-        viewBinding.playerView.controllerShowTimeoutMs = controllerShowTimeoutMs
+
+    fun setFullScreen(isFullScreen: Boolean) {
+        this@ZyPlayerView.isFullScreen = isFullScreen
+        val res = if (isFullScreen) {
+            R.drawable.zy_player_controls_fullscreen_exit
+
+        } else {
+            R.drawable.zy_player_controls_fullscreen_enter
+        }
+        viewBinding.playerControl.ivFullscreen.setImageResource(res)
+        onFullScreenModeChangedListener?.onFullScreenModeChanged(isFullScreen)
     }
+
 
     override fun onEvents(player: Player, events: Player.Events) {
         if (events.containsAny(
@@ -157,6 +190,7 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
             )
         ) {
             updatePlayPauseButton()
+
         }
 
         if (events.containsAny(
@@ -179,25 +213,44 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
         }
     }
 
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        super.onPlaybackStateChanged(playbackState)
+        if (playbackState == Player.STATE_BUFFERING) {
+            viewBinding.progressBar.visibility = View.VISIBLE
+        } else {
+            viewBinding.progressBar.visibility = View.GONE
+        }
+    }
+
+
     private fun updatePlayPauseButton() {
         val shouldShowPlayButton = Util.shouldShowPlayButton(player)
-        @DrawableRes val drawableRes =
-            if (shouldShowPlayButton)
-                R.drawable.zy_player_controls_play
-            else
-                R.drawable.zy_player_controls_pause
+        val drawableRes: Int = if (shouldShowPlayButton) {
+            removeCallbacks(hideControlViewAction)
+            if (controllerShowTimeoutMs > 0) {
+                showControlView()
+            }
+            R.drawable.zy_player_controls_play
+        } else {
+            if (controllerShowTimeoutMs > 0) {
+                postDelayed(hideControlViewAction, controllerShowTimeoutMs)
+            }
+            R.drawable.zy_player_controls_pause
+        }
         viewBinding.playerControl.ivPlay.setImageResource(drawableRes)
     }
 
     override fun onClick(v: View?) {
         when (v) {
             viewBinding.playerView -> {
-                if (player.isPlaying) {
+                val shouldShowPlayButton = Util.shouldShowPlayButton(player)
+                if (!shouldShowPlayButton) {
                     player.pause()
                 } else {
                     player.play()
                 }
             }
+
             viewBinding.playerControl.ivPlay -> {
                 Util.handlePlayPauseButtonAction(player)
             }
@@ -209,40 +262,21 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
             }
 
             viewBinding.playerControl.ivFullscreen -> {
-                isFullScreen = !isFullScreen
-                val res = if (isFullScreen) {
-                    R.drawable.zy_player_controls_fullscreen_exit
-
-                } else {
-                    R.drawable.zy_player_controls_fullscreen_enter
-                }
-                viewBinding.playerControl.ivFullscreen.setImageResource(res)
-                onFullScreenModeChangedListener?.onFullScreenModeChanged(isFullScreen)
+                setFullScreen(!isFullScreen)
             }
 
             viewBinding.playerControl.ivVolume -> {
                 if (volumeView.isShowing) {
                     volumeView.dismiss()
                 } else {
-                    volumeView.showAtLocation(
-                        viewBinding.root,
-                        Gravity.END or Gravity.BOTTOM,
-                        resources.getDimension(com.sunny.zy.R.dimen.dp_10).toInt(),
-                        resources.getDimension(com.sunny.zy.R.dimen.dp_50).toInt()
-                    )
+                    val dp10 = resources.getDimension(com.sunny.zy.R.dimen.dp_10).toInt()
+                    val y = (viewBinding.root.height - volumeView.height) / 2 - viewBinding.playerControl.root.height - dp10
+                    volumeView.showAtLocation(viewBinding.playerControl.root, Gravity.END, dp10, y)
                 }
             }
         }
     }
 
-    interface OnFullScreenModeChangedListener {
-        /**
-         * Called to indicate a fullscreen mode change.
-         *
-         * @param isFullScreen `true` if the video rendering surface should be fullscreen `false` otherwise.
-         */
-        fun onFullScreenModeChanged(isFullScreen: Boolean)
-    }
 
     override fun onScrubStart(timeBar: TimeBar, position: Long) {
         scrubbing = true
@@ -321,6 +355,45 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
         viewBinding.playerControl.tvDuration.text = Util.getStringForTime(formatBuilder, formatter, durationMs)
         viewBinding.playerControl.timeBar.setDuration(durationMs)
         updateProgress()
+    }
+
+    private fun showControlView() {
+        val bottomView = viewBinding.playerControl.root
+        if (bottomView.translationY != 0f && !isAnimating) {
+            isAnimating = true
+            val animate = bottomView.animate()
+                .translationYBy((-bottomView.height).toFloat())
+                .setDuration(500) // 设置动画持续时间
+                .withEndAction {
+                    isAnimating = false
+                }
+            animate.start()
+            controllerVisibilityListener?.onVisibilityChanged(true)
+        }
+    }
+
+    private fun hideControlView() {
+        val bottomView = viewBinding.playerControl.root
+        if (bottomView.translationY.toInt() != bottomView.height && !isAnimating) {
+            isAnimating = true
+            val animate = bottomView.animate()
+                .translationYBy(bottomView.height.toFloat())
+                .setDuration(300) // 设置动画持续时间
+                .withEndAction {
+                    isAnimating = false
+                }
+            animate.start()
+            controllerVisibilityListener?.onVisibilityChanged(false)
+        }
+    }
+
+    interface ControllerVisibilityListener {
+        fun onVisibilityChanged(isVisibility: Boolean)
+    }
+
+
+    interface OnFullScreenModeChangedListener {
+        fun onFullScreenModeChanged(isFullScreen: Boolean)
     }
 
 }

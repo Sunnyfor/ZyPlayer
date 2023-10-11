@@ -5,8 +5,11 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Color
 import android.view.View
+import android.view.ViewPropertyAnimator
 import android.view.WindowManager
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.sunny.zy.base.BaseActivity
+import com.sunny.zyplayer.R
 import com.sunny.zyplayer.ZyPlayerView
 import com.sunny.zyplayer.bean.ZySubtitleBean
 import com.sunny.zyplayer.databinding.ActivityVideoBinding
@@ -44,39 +47,61 @@ class VideoActivity : BaseActivity() {
 
     private val subtitleBean: ZySubtitleBean? by lazy { intent.getParcelableExtra("subtitle") }
 
+    private var isFullScreen = false
+
     override fun initLayout() = viewBinding.root
 
     override fun initView() {
         statusBar.setBackgroundColor(Color.BLACK)
-
+        viewBinding.tvTitle.text = title
+        viewBinding.videoView.setControllerShowTimeoutMs(0) //不隐藏操作拦
         viewBinding.videoView.setVideoUrl(videoUrl, subtitleBean, true)
 
-        viewBinding.videoView.setControllerShowTimeoutMs(0)
-        viewBinding.videoView.setControllerHideOnTouch(false)
+        viewBinding.videoView.setControllerVisibilityListener(object : ZyPlayerView.ControllerVisibilityListener {
+            override fun onVisibilityChanged(isVisibility: Boolean) {
+                if (isVisibility) {
+                    showTitleView()
+                } else {
+                    hideTitleView()
+                }
+            }
+        })
 
-        viewBinding.videoView.setControllerVisibilityListener {
-            viewBinding.clTitle.visibility = it
-        }
         viewBinding.videoView.setFullScreenModeChangedListener(object : ZyPlayerView.OnFullScreenModeChangedListener {
             override fun onFullScreenModeChanged(isFullScreen: Boolean) {
-                if (isFullScreen) {
-                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                    window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-                    supportActionBar?.hide()
-                    hideStatusBar()
-
-                } else {
-                    requestedOrientation = screenOrientation
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-                    supportActionBar?.show()
-                    showStatusBar()
-
-                }
+                this@VideoActivity.isFullScreen = isFullScreen
+                fullScreenModeChanged(isFullScreen)
             }
 
         })
         setOnClickListener(viewBinding.ibBack)
     }
+
+
+    fun fullScreenModeChanged(isFullScreen: Boolean) {
+
+        val layoutParams = viewBinding.videoView.layoutParams as ConstraintLayout.LayoutParams
+
+        if (isFullScreen) {
+            layoutParams.topToBottom = ConstraintLayout.LayoutParams.UNSET
+            layoutParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            viewBinding.videoView.setControllerShowTimeoutMs(5000)
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            supportActionBar?.hide()
+            hideStatusBar()
+        } else {
+            layoutParams.topToBottom = R.id.clTitle
+            layoutParams.topToTop = ConstraintLayout.LayoutParams.UNSET
+            viewBinding.videoView.setControllerShowTimeoutMs(0)
+            requestedOrientation = screenOrientation
+            window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            supportActionBar?.show()
+            showStatusBar()
+
+        }
+    }
+
 
     override fun loadData() {
 
@@ -87,6 +112,36 @@ class VideoActivity : BaseActivity() {
             viewBinding.ibBack.id -> {
                 finish()
             }
+        }
+    }
+
+
+    override fun onBackPressed() {
+        if (isFullScreen) {
+            viewBinding.videoView.setFullScreen(false)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+
+    private fun showTitleView() {
+        val titleView = viewBinding.clTitle
+        if (titleView.translationY.toInt() != 0) {
+            val animator: ViewPropertyAnimator = titleView.animate()
+                .translationYBy(titleView.height.toFloat())
+                .setDuration(500) // 设置动画持续时间
+            animator.start()
+        }
+    }
+
+    private fun hideTitleView() {
+        val titleView = viewBinding.clTitle
+        if (titleView.translationY.toInt() != -titleView.height) {
+            val animator: ViewPropertyAnimator = titleView.animate()
+                .translationYBy(-titleView.height.toFloat())
+                .setDuration(500) // 设置动画持续时间
+            animator.start()
         }
     }
 

@@ -41,11 +41,8 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
         }
     }
 
-    var autoDismissMs = 4   //秒
-
 
     init {
-        animationStyle = R.style.VolumeViewAnimation
         setBackgroundDrawable(null)
         width = context.resources.getDimension(com.sunny.zy.R.dimen.dp_35).toInt()
         height = context.resources.getDimension(com.sunny.zy.R.dimen.dp_120).toInt()
@@ -70,7 +67,7 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
             AudioManager.STREAM_MUSIC,
             AudioManager.AUDIOFOCUS_GAIN
         )
-
+        animationStyle = R.style.VolumeViewAnimation
         updateValue()
     }
 
@@ -91,19 +88,17 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
         super.showAtLocation(parent, gravity, x, y)
         startAutoDismiss()
         registerReceiver(contentView.context)
-        update()
     }
 
     override fun showAsDropDown(anchor: View, xoff: Int, yoff: Int, gravity: Int) {
         super.showAsDropDown(anchor, xoff, yoff, gravity)
         startAutoDismiss()
         registerReceiver(contentView.context)
-        update()
     }
 
     private fun startAutoDismiss() {
         autoDismissHandler.removeCallbacks(autoDismissRunnable)
-        autoDismissHandler.postDelayed(autoDismissRunnable, autoDismissMs * 1000L)
+        autoDismissHandler.postDelayed(autoDismissRunnable, 4 * 1000L)
     }
 
 
