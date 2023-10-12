@@ -14,7 +14,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:textColor="@android:color/white"
+        android:textColor="@color/colorTheme"
         android:text="@string/zy_default_number"/>
 
     <com.sunny.zyplayer.widget.VerticalSeekBar

@@ -67,7 +67,10 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
     private var onFullScreenModeChangedListener: OnFullScreenModeChangedListener? = null
 
     private val volumeView by lazy {
-        VolumeViewPopupWindow(context)
+        VolumeViewPopupWindow(context).apply {
+            height = (viewBinding.playerView.height *0.8).toInt()
+            width = height / 4
+        }
     }
 
     private var controllerShowTimeoutMs = 5000L
@@ -272,9 +275,9 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
                 if (volumeView.isShowing) {
                     volumeView.dismiss()
                 } else {
+                    val y = (viewBinding.playerControl.root.height + volumeView.height)
                     val dp10 = resources.getDimension(com.sunny.zy.R.dimen.dp_10).toInt()
-                    val y = (viewBinding.root.height - volumeView.height) / 2 - viewBinding.playerControl.root.height - dp10
-                    volumeView.showAtLocation(viewBinding.playerControl.root, Gravity.END, dp10, y)
+                    volumeView.showAsDropDown(viewBinding.playerControl.root, -dp10, -y, Gravity.END)
                 }
             }
         }
