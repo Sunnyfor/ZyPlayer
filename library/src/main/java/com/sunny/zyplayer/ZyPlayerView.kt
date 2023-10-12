@@ -274,7 +274,8 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
                 } else {
                     val y = (viewBinding.playerControl.root.height + volumeView.height)
                     val dp10 = resources.getDimension(com.sunny.zy.R.dimen.dp_10).toInt()
-                    volumeView.showAsDropDown(viewBinding.playerControl.root, -dp10, -y, Gravity.END)
+
+                    volumeView.showAsDropDown(viewBinding.playerControl.root, width- volumeView.width - dp10, -y)
                 }
             }
         }
