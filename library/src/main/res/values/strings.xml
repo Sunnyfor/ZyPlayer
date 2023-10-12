@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="videoPlay">视频播放</string>
-    <string name="timeSplit">/</string>
-    <string name="defaultNumber">0</string>
-    <string name="defaultTime">00:00</string>
+    <string name="zy_video_play">视频播放</string>
+    <string name="zy_time_split">/</string>
+    <string name="zy_default_number">0</string>
+    <string name="zy_default_Time">00:00</string>
+    <string name="zy_player_error">播放失败</string>
 </resources>

@@ -127,7 +127,7 @@ class VideoActivity : BaseActivity() {
 
     private fun showTitleView() {
         val titleView = viewBinding.clTitle
-        if (titleView.translationY.toInt() != 0) {
+        if (titleView.translationY.toInt() == -titleView.height) {
             val animator: ViewPropertyAnimator = titleView.animate()
                 .translationYBy(titleView.height.toFloat())
                 .setDuration(500) // 设置动画持续时间
@@ -137,10 +137,15 @@ class VideoActivity : BaseActivity() {
 
     private fun hideTitleView() {
         val titleView = viewBinding.clTitle
-        if (titleView.translationY.toInt() != -titleView.height) {
+        if (titleView.translationY.toInt() == 0) {
             val animator: ViewPropertyAnimator = titleView.animate()
                 .translationYBy(-titleView.height.toFloat())
                 .setDuration(500) // 设置动画持续时间
+                .withEndAction {
+                    if (!isFullScreen) {
+                        showTitleView()
+                    }
+                }
             animator.start()
         }
     }

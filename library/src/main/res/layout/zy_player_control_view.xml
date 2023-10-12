@@ -64,20 +64,20 @@
             android:id="@+id/tvPosition"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/defaultTime"
+            android:text="@string/zy_default_Time"
             android:textColor="#93A2BA"
             android:textSize="@dimen/dp_12" />
 
         <TextView
             style="@style/ExoStyledControls.TimeText.Separator"
-            android:text="@string/timeSplit"
+            android:text="@string/zy_time_split"
             android:textSize="@dimen/dp_12" />
 
         <TextView
             android:id="@+id/tvDuration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/defaultTime"
+            android:text="@string/zy_default_Time"
             android:textColor="@android:color/white"
             android:textSize="@dimen/dp_12" />
 

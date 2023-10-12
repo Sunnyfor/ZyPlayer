@@ -10,6 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
@@ -106,11 +107,6 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
     fun setVideoUrl(videoUrl: String, subtitleBean: ZySubtitleBean?, isAutoPlay: Boolean) {
         val mediaItem = MediaItem.Builder()
         mediaItem.setUri(videoUrl)
-        viewBinding.playerView.setShowRewindButton(false)
-        viewBinding.playerView.setShowFastForwardButton(false)
-        viewBinding.playerView.setShowPreviousButton(false)
-        viewBinding.playerView.setShowNextButton(false)
-
 
         val subtitleUri = subtitleBean?.uri
         if (subtitleUri != null) {
@@ -217,16 +213,23 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
         super.onPlaybackStateChanged(playbackState)
         if (playbackState == Player.STATE_BUFFERING) {
             viewBinding.progressBar.visibility = View.VISIBLE
+            viewBinding.tvPlayerError.visibility = View.GONE
         } else {
             viewBinding.progressBar.visibility = View.GONE
         }
     }
 
 
+    override fun onPlayerError(error: PlaybackException) {
+        super.onPlayerError(error)
+        viewBinding.tvPlayerError.visibility = View.VISIBLE
+    }
+
+
     private fun updatePlayPauseButton() {
+        removeCallbacks(hideControlViewAction)
         val shouldShowPlayButton = Util.shouldShowPlayButton(player)
         val drawableRes: Int = if (shouldShowPlayButton) {
-            removeCallbacks(hideControlViewAction)
             if (controllerShowTimeoutMs > 0) {
                 showControlView()
             }
@@ -381,6 +384,9 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
                 .setDuration(300) // 设置动画持续时间
                 .withEndAction {
                     isAnimating = false
+                    if (controllerShowTimeoutMs.toInt() == 0) {
+                        showControlView()
+                    }
                 }
             animate.start()
             controllerVisibilityListener?.onVisibilityChanged(false)
