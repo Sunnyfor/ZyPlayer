@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Color
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewPropertyAnimator
 import android.view.WindowManager
@@ -110,12 +111,17 @@ class VideoActivity : BaseActivity() {
     override fun onClickEvent(view: View) {
         when (view.id) {
             viewBinding.ibBack.id -> {
-                finish()
+                if (isFullScreen) {
+                    viewBinding.videoView.setFullScreen(false)
+                }else{
+                    finish()
+                }
             }
         }
     }
 
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (isFullScreen) {
             viewBinding.videoView.setFullScreen(false)
