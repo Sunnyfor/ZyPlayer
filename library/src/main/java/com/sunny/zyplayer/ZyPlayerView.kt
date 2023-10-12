@@ -67,10 +67,7 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
     private var onFullScreenModeChangedListener: OnFullScreenModeChangedListener? = null
 
     private val volumeView by lazy {
-        VolumeViewPopupWindow(context).apply {
-            height = (viewBinding.playerView.height *0.8).toInt()
-            width = height / 4
-        }
+        VolumeViewPopupWindow(context)
     }
 
     private var controllerShowTimeoutMs = 5000L
