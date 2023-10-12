@@ -2,4 +2,5 @@
 <resources>
     <color name="zy_bg_window">#b0000000</color>
     <color name="zy_fg_window">#1bffffff</color>
+    <color name="colorTheme">#2A90FC</color>
 </resources>

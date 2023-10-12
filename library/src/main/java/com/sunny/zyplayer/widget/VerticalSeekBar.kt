@@ -99,11 +99,11 @@ class VerticalSeekBar : View {
 
         val radius = progressBar.right / 2f
         // 绘制进度条
-        paint.color = getColorWithAlpha(0.1f, ContextCompat.getColor(context, com.sunny.zy.R.color.colorTheme))
+        paint.color = getColorWithAlpha(0.1f, ContextCompat.getColor(context, R.color.colorTheme))
         canvas.drawRoundRect(progressBar, radius, radius, paint)
 
 //        // 绘制进度
-        paint.color = ContextCompat.getColor(context, com.sunny.zy.R.color.colorTheme)
+        paint.color = ContextCompat.getColor(context, R.color.colorTheme)
         val progressY = progressBar.bottom - progress * progressBar.bottom / max
         rectF.left = progressBar.left
         rectF.right = progressBar.right
@@ -120,7 +120,7 @@ class VerticalSeekBar : View {
         canvas.drawRoundRect(thumbBorder, radius, radius, paint)
 
         // 绘制滑块
-        paint.color = ContextCompat.getColor(context, com.sunny.zy.R.color.colorTheme)
+        paint.color = ContextCompat.getColor(context, R.color.colorTheme)
         thumb.left = thumbBorder.left + thumbBorderSize
         thumb.top = thumbBorder.top + thumbBorderSize
         thumb.right = thumbBorder.right - thumbBorderSize
