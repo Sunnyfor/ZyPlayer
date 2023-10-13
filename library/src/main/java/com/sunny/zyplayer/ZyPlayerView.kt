@@ -2,7 +2,6 @@ package com.sunny.zyplayer
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnClickListener
@@ -174,6 +173,7 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
             R.drawable.zy_player_controls_fullscreen_enter
         }
         viewBinding.playerControl.ivFullscreen.setImageResource(res)
+        hideVolumeView()
         onFullScreenModeChangedListener?.onFullScreenModeChanged(isFullScreen)
     }
 
@@ -275,7 +275,7 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
                     val y = (viewBinding.playerControl.root.height + volumeView.height)
                     val dp10 = resources.getDimension(com.sunny.zy.R.dimen.dp_10).toInt()
 
-                    volumeView.showAsDropDown(viewBinding.playerControl.root, width- volumeView.width - dp10, -y)
+                    volumeView.showAsDropDown(viewBinding.playerControl.root, width - volumeView.width - dp10, -y)
                 }
             }
         }
@@ -379,6 +379,7 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
     private fun hideControlView() {
         val bottomView = viewBinding.playerControl.root
         if (bottomView.translationY.toInt() != bottomView.height && !isAnimating) {
+            hideVolumeView()
             isAnimating = true
             val animate = bottomView.animate()
                 .translationYBy(bottomView.height.toFloat())
@@ -391,6 +392,12 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
                 }
             animate.start()
             controllerVisibilityListener?.onVisibilityChanged(false)
+        }
+    }
+
+    private fun hideVolumeView() {
+        if (volumeView.isShowing) {
+            volumeView.dismiss()
         }
     }
 
