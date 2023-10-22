@@ -8,15 +8,15 @@ import android.view.View.OnClickListener
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.TimeBar
 import com.google.common.collect.ImmutableList
-import com.sunny.zyplayer.bean.ZySubtitleBean
+import com.sunny.zyplayer.bean.ZyVideoBean
 import com.sunny.zyplayer.databinding.ZyLayoutPlayerViewBinding
+import com.sunny.zyplayer.widget.ListViewPopupWindow
 import com.sunny.zyplayer.widget.VolumeViewPopupWindow
 import java.util.Formatter
 import java.util.Locale
@@ -65,13 +65,21 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
     private var controllerVisibilityListener: ControllerVisibilityListener? = null
     private var onFullScreenModeChangedListener: OnFullScreenModeChangedListener? = null
 
+    private val playList = arrayListOf<ZyVideoBean>()
+    private val mediaItemList = arrayListOf<MediaItem>()
+
     private val volumeView by lazy {
         VolumeViewPopupWindow(context)
+    }
+
+    private val listView by lazy {
+        ListViewPopupWindow(context, player, playList)
     }
 
     private var controllerShowTimeoutMs = 5000L
 
     private var isAnimating = false
+
 
     init {
         viewBinding.playerView.player = player
@@ -90,39 +98,46 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
 
         viewBinding.playerControl.ivVolume.setOnClickListener(this)
 
+        viewBinding.playerControl.ivList.setOnClickListener(this)
+
         setControllerShowTimeoutMs(controllerShowTimeoutMs)
     }
 
     /**
      * 加载视频
      */
-    fun setVideoUrl(videoUrl: String, isAutoPlay: Boolean) {
-        setVideoUrl(videoUrl, null, isAutoPlay)
+    fun setVideoData(videoBean: ZyVideoBean, isAutoPlay: Boolean) {
+        setVideoData(arrayListOf(videoBean), isAutoPlay)
     }
 
-    /**
-     * 加载视频和字幕
-     */
-    fun setVideoUrl(videoUrl: String, subtitleBean: ZySubtitleBean?, isAutoPlay: Boolean) {
-        val mediaItem = MediaItem.Builder()
-        mediaItem.setUri(videoUrl)
 
-        val subtitleUri = subtitleBean?.uri
-        if (subtitleUri != null) {
-            MimeTypes.APPLICATION_AIT
-            viewBinding.playerView.setShowSubtitleButton(true)
-            val subtitleConfiguration = MediaItem.SubtitleConfiguration.Builder(subtitleUri)
-                .setLanguage(subtitleBean.language)
-                .setMimeType(subtitleBean.mimeType)
-                .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-                .build()
-            mediaItem.setSubtitleConfigurations(ImmutableList.of(subtitleConfiguration))
+    fun setVideoData(data: List<ZyVideoBean>, isAutoPlay: Boolean) {
+        playList.clear()
+        mediaItemList.clear()
+        playList.addAll(data)
+
+        viewBinding.playerControl.ivList.visibility = if (data.size > 1) {
+            View.VISIBLE
+        } else {
+            View.GONE
         }
-        player.setMediaItem(mediaItem.build())
+
+        data.forEach {
+            val mediaItem = MediaItem.Builder()
+            mediaItem.setUri(it.uri)
+            it.subtitle?.let { subtitle ->
+                val subtitleConfiguration = MediaItem.SubtitleConfiguration.Builder(subtitle.uri)
+                    .setLanguage(subtitle.language)
+                    .setMimeType(subtitle.mimeType)
+                    .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                    .build()
+                mediaItem.setSubtitleConfigurations(ImmutableList.of(subtitleConfiguration))
+            }
+            mediaItemList.add(mediaItem.build())
+        }
+        player.setMediaItems(mediaItemList)
         player.prepare()
         player.playWhenReady = isAutoPlay
-
-
     }
 
 
@@ -173,7 +188,7 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
             R.drawable.zy_player_controls_fullscreen_enter
         }
         viewBinding.playerControl.ivFullscreen.setImageResource(res)
-        hideVolumeView()
+        hidePopupWindow()
         onFullScreenModeChangedListener?.onFullScreenModeChanged(isFullScreen)
     }
 
@@ -225,6 +240,11 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
         viewBinding.tvPlayerError.visibility = View.VISIBLE
     }
 
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        super.onMediaItemTransition(mediaItem, reason)
+        listView.updateIndex(player.currentMediaItemIndex)
+    }
+
 
     private fun updatePlayPauseButton() {
         removeCallbacks(hideControlViewAction)
@@ -246,6 +266,10 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
     override fun onClick(v: View?) {
         when (v) {
             viewBinding.playerView -> {
+                if (listView.isShowing) {
+                    listView.dismiss()
+                    return
+                }
                 val shouldShowPlayButton = Util.shouldShowPlayButton(player)
                 if (!shouldShowPlayButton) {
                     player.pause()
@@ -272,10 +296,21 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
                 if (volumeView.isShowing) {
                     volumeView.dismiss()
                 } else {
+                    hidePopupWindow()
                     val y = (viewBinding.playerControl.root.height + volumeView.height)
                     val dp10 = resources.getDimension(com.sunny.zy.R.dimen.dp_10).toInt()
-
                     volumeView.showAsDropDown(viewBinding.playerControl.root, width - volumeView.width - dp10, -y)
+                }
+            }
+
+            viewBinding.playerControl.ivList -> {
+                if (listView.isShowing) {
+                    listView.dismiss()
+                } else {
+                    hidePopupWindow()
+                    val y = (viewBinding.playerControl.root.height + listView.height)
+                    val dp10 = resources.getDimension(com.sunny.zy.R.dimen.dp_10).toInt()
+                    listView.showAsDropDown(viewBinding.playerControl.root, width - listView.width - dp10, -y)
                 }
             }
         }
@@ -379,7 +414,7 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
     private fun hideControlView() {
         val bottomView = viewBinding.playerControl.root
         if (bottomView.translationY.toInt() != bottomView.height && !isAnimating) {
-            hideVolumeView()
+            hidePopupWindow()
             isAnimating = true
             val animate = bottomView.animate()
                 .translationYBy(bottomView.height.toFloat())
@@ -395,9 +430,12 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
         }
     }
 
-    private fun hideVolumeView() {
+    private fun hidePopupWindow() {
         if (volumeView.isShowing) {
             volumeView.dismiss()
+        }
+        if (listView.isShowing) {
+            listView.dismiss()
         }
     }
 

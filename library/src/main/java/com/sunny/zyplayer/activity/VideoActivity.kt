@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Color
-import android.view.KeyEvent
+import android.os.Parcelable
 import android.view.View
 import android.view.ViewPropertyAnimator
 import android.view.WindowManager
@@ -12,7 +12,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import com.sunny.zy.base.BaseActivity
 import com.sunny.zyplayer.R
 import com.sunny.zyplayer.ZyPlayerView
-import com.sunny.zyplayer.bean.ZySubtitleBean
+import com.sunny.zyplayer.bean.ZyVideoBean
 import com.sunny.zyplayer.databinding.ActivityVideoBinding
 
 class VideoActivity : BaseActivity() {
@@ -21,32 +21,32 @@ class VideoActivity : BaseActivity() {
         fun intent(
             context: Context,
             title: String,
-            videoUrl: String,
-            subtitleBean: ZySubtitleBean? = null
+            videoBeans: ArrayList<ZyVideoBean>,
+            isAutoPlay: Boolean = true
         ) {
             val intent = Intent(context, VideoActivity::class.java)
-            intent.putExtra("videoUrl", videoUrl)
-            intent.putExtra("title", title)
-            intent.putExtra("subtitle", subtitleBean)
+            intent.putExtra("mTitle", title)
+            intent.putExtra("videoList", videoBeans)
+            intent.putExtra("isAutoPlay", isAutoPlay)
             context.startActivity(intent)
         }
 
         fun intent(
             context: Context,
-            videoUrl: String
+            title: String,
+            videoBean: ZyVideoBean,
+            isAutoPlay: Boolean = true
         ) {
-            intent(context, "", videoUrl)
+            intent(context, title, arrayListOf(videoBean), isAutoPlay)
         }
     }
 
     private val viewBinding by lazy { ActivityVideoBinding.inflate(layoutInflater) }
 
 
-    private val title: String by lazy { intent.getStringExtra("title") ?: "" }
+    private val videoData by lazy { intent.getParcelableArrayListExtra<Parcelable>("videoList") ?: arrayListOf() }
 
-    private val videoUrl: String by lazy { intent.getStringExtra("videoUrl") ?: "" }
-
-    private val subtitleBean: ZySubtitleBean? by lazy { intent.getParcelableExtra("subtitle") }
+    private val isAutoPlay by lazy { intent.getBooleanExtra("isAutoPlay", true) }
 
     private var isFullScreen = false
 
@@ -54,9 +54,15 @@ class VideoActivity : BaseActivity() {
 
     override fun initView() {
         statusBar.setBackgroundColor(Color.BLACK)
-        viewBinding.tvTitle.text = title
+        viewBinding.tvTitle.text =  intent.getStringExtra("mTitle") ?: ""
         viewBinding.videoView.setControllerShowTimeoutMs(0) //不隐藏操作拦
-        viewBinding.videoView.setVideoUrl(videoUrl, subtitleBean, true)
+        val playList = arrayListOf<ZyVideoBean>()
+        videoData.forEach {
+            if (it is ZyVideoBean) {
+                playList.add(it)
+            }
+        }
+        viewBinding.videoView.setVideoData(playList, true)
 
         viewBinding.videoView.setControllerVisibilityListener(object : ZyPlayerView.ControllerVisibilityListener {
             override fun onVisibilityChanged(isVisibility: Boolean) {
@@ -113,7 +119,7 @@ class VideoActivity : BaseActivity() {
             viewBinding.ibBack.id -> {
                 if (isFullScreen) {
                     viewBinding.videoView.setFullScreen(false)
-                }else{
+                } else {
                     finish()
                 }
             }

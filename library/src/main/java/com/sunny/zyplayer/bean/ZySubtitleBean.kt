@@ -4,16 +4,15 @@ import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 
-class ZySubtitleBean() : Parcelable {
-    var uri: Uri? = null
+data class ZySubtitleBean(var uri: Uri) : Parcelable {
     var language = ""
     var mimeType = ""
 
-    constructor(parcel: Parcel) : this() {
-        uri = parcel.readParcelable(Uri::class.java.classLoader)
+    constructor(parcel: Parcel) : this(parcel.readParcelable(Uri::class.java.classLoader) ?: Uri.EMPTY) {
         language = parcel.readString() ?: ""
         mimeType = parcel.readString() ?: ""
     }
+
 
     override fun toString(): String {
         return "ZySubtitleBean(uri=$uri, language='$language', mimeType='$mimeType')"
@@ -38,4 +37,5 @@ class ZySubtitleBean() : Parcelable {
             return arrayOfNulls(size)
         }
     }
+
 }

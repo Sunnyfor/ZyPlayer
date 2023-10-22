@@ -110,6 +110,15 @@
             android:padding="@dimen/dp_2"
             android:src="@drawable/zy_player_controls_volume" />
 
+        <ImageView
+            android:id="@+id/ivList"
+            android:layout_width="@dimen/dp_20"
+            android:layout_height="@dimen/dp_20"
+            android:layout_marginEnd="@dimen/dp_11"
+            android:contentDescription="@null"
+            android:visibility="gone"
+            android:padding="@dimen/dp_2"
+            android:src="@drawable/zy_player_controls_list" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
