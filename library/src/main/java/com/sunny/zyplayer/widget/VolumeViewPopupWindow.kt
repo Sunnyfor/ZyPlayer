@@ -33,7 +33,9 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
 
     private val autoDismissHandler: Handler = Handler(Looper.getMainLooper())
 
-    private var volumeBroadcastReceiver: VolumeBroadcastReceiver? = null
+    private val volumeBroadcastReceiver by lazy {
+        VolumeBroadcastReceiver()
+    }
 
     private val autoDismissRunnable by lazy {
         Runnable {
@@ -41,6 +43,10 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
         }
     }
 
+
+    private var isRegister = false
+
+    private var isUpdate = false
 
     init {
         setBackgroundDrawable(null)
@@ -53,6 +59,9 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
                 startAutoDismiss()
                 val value = ((progress.toFloat() / seekBar.getMax()) * 100).toInt()
                 viewBinding.tvNumber.text = value.toString()
+                if (isUpdate) {
+                    return
+                }
                 audioManager.setStreamVolume(
                     AudioManager.STREAM_MUSIC,  //音量类型
                     progress, AudioManager.FLAG_PLAY_SOUND
@@ -72,13 +81,16 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
     }
 
     private fun updateValue() {
+        isUpdate = true
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         viewBinding.seekBar.setMax(maxVolume)
         viewBinding.seekBar.setProgress(currentVolume)
+        isUpdate = false
     }
 
     override fun dismiss() {
+        LogUtil.i("销毁方法调用")
         unrRegisterReceiver(contentView.context)
         updateValue()
         super.dismiss()
@@ -87,13 +99,13 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
     override fun showAtLocation(parent: View, gravity: Int, x: Int, y: Int) {
         super.showAtLocation(parent, gravity, x, y)
         startAutoDismiss()
-        registerReceiver(contentView.context)
+        registerReceiver(parent.context)
     }
 
     override fun showAsDropDown(anchor: View, xoff: Int, yoff: Int, gravity: Int) {
         super.showAsDropDown(anchor, xoff, yoff, gravity)
         startAutoDismiss()
-        registerReceiver(contentView.context)
+        registerReceiver(anchor.context)
     }
 
     private fun startAutoDismiss() {
@@ -103,17 +115,16 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
 
 
     private fun registerReceiver(context: Context) {
-        unrRegisterReceiver(context)
-        volumeBroadcastReceiver = VolumeBroadcastReceiver()
+        isRegister = true
         val filter = IntentFilter()
         filter.addAction(VOLUME_CHANGED_ACTION)
         context.registerReceiver(volumeBroadcastReceiver, filter)
     }
 
     private fun unrRegisterReceiver(context: Context) {
-        if (volumeBroadcastReceiver != null) {
+        if (isRegister) {
+            isRegister = false
             context.unregisterReceiver(volumeBroadcastReceiver)
-            volumeBroadcastReceiver = null
         }
     }
 
