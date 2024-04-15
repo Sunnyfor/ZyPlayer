@@ -13,7 +13,7 @@ import com.sunny.zy.base.BaseActivity
 import com.sunny.zyplayer.R
 import com.sunny.zyplayer.ZyPlayerView
 import com.sunny.zyplayer.bean.ZyVideoBean
-import com.sunny.zyplayer.databinding.ActivityVideoBinding
+import com.sunny.zyplayer.databinding.ZyActivityVideoBinding
 
 class VideoActivity : BaseActivity() {
 
@@ -41,7 +41,7 @@ class VideoActivity : BaseActivity() {
         }
     }
 
-    private val viewBinding by lazy { ActivityVideoBinding.inflate(layoutInflater) }
+    private val viewBinding by lazy { ZyActivityVideoBinding.inflate(layoutInflater) }
 
 
     private val videoData by lazy { intent.getParcelableArrayListExtra<Parcelable>("videoList") ?: arrayListOf() }
@@ -54,7 +54,7 @@ class VideoActivity : BaseActivity() {
 
     override fun initView() {
         statusBar.setBackgroundColor(Color.BLACK)
-        viewBinding.tvTitle.text =  intent.getStringExtra("mTitle") ?: ""
+        viewBinding.tvTitle.text = intent.getStringExtra("mTitle") ?: ""
         viewBinding.videoView.setControllerShowTimeoutMs(0) //不隐藏操作拦
         val playList = arrayListOf<ZyVideoBean>()
         videoData.forEach {
@@ -62,7 +62,7 @@ class VideoActivity : BaseActivity() {
                 playList.add(it)
             }
         }
-        viewBinding.videoView.setVideoData(playList, true)
+        viewBinding.videoView.setVideoData(playList, isAutoPlay)
 
         viewBinding.videoView.setControllerVisibilityListener(object : ZyPlayerView.ControllerVisibilityListener {
             override fun onVisibilityChanged(isVisibility: Boolean) {

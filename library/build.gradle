@@ -42,7 +42,7 @@ dependencies {
     implementation project.ext.dependencies.recyclerView
 
     //工具框架
-    api 'com.github.Sunnyfor:ZyKit:1.0.3'
+    api 'com.github.Sunnyfor:ZyKit:2.0.1'
     //base框架
     implementation 'com.github.Sunnyfor:ZyBase:1.0.1'
     implementation "androidx.media3:media3-exoplayer:1.1.0"

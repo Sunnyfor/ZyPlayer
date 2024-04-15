@@ -135,9 +135,13 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
             }
             mediaItemList.add(mediaItem.build())
         }
-        player.setMediaItems(mediaItemList)
-        player.prepare()
-        player.playWhenReady = isAutoPlay
+        try {
+            player.setMediaItems(mediaItemList)
+            player.prepare()
+            player.playWhenReady = isAutoPlay
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 

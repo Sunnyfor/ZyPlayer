@@ -11,7 +11,6 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.PopupWindow
-import com.sunny.kit.utils.LogUtil
 import com.sunny.zyplayer.R
 import com.sunny.zyplayer.databinding.ZyLayoutVolumeViewBinding
 
@@ -70,9 +69,7 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
         }
 
         audioManager.requestAudioFocus(
-            {
-                LogUtil.i("获取到状态 $it")
-            },
+            {},
             AudioManager.STREAM_MUSIC,
             AudioManager.AUDIOFOCUS_GAIN
         )
@@ -90,7 +87,6 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
     }
 
     override fun dismiss() {
-        LogUtil.i("销毁方法调用")
         unrRegisterReceiver(contentView.context)
         updateValue()
         super.dismiss()
