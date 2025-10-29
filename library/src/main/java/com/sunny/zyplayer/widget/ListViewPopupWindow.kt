@@ -14,6 +14,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sunny.zy.base.BaseRecycleAdapter
 import com.sunny.zy.base.BaseRecycleViewHolder
+import com.sunny.zyplayer.ColorConfig
 import com.sunny.zyplayer.R
 import com.sunny.zyplayer.bean.ZyVideoBean
 import com.sunny.zyplayer.databinding.ZyLayoutListViewBinding
@@ -77,7 +78,7 @@ class ListViewPopupWindow(context: Context, val player: ExoPlayer, val videoList
             textView.text = title
 
             if (position == index) {
-                textView.setTextColor(ContextCompat.getColor(context, R.color.colorTheme))
+                textView.setTextColor(ColorConfig.colorTheme)
             } else {
                 textView.setTextColor(Color.BLACK)
             }

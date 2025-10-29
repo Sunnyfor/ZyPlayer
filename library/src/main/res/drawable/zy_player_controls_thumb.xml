@@ -3,14 +3,23 @@
     <!-- 内部圆形：蓝色 -->
     <item>
         <shape android:shape="oval">
-            <size android:width="@dimen/dp_6" android:height="@dimen/dp_6"/>
+            <size
+                android:width="@dimen/dp_6"
+                android:height="@dimen/dp_6" />
             <solid android:color="@android:color/white" /> <!-- 蓝色 -->
         </shape>
     </item>
     <!-- 外部圆形：白色边框 -->
-    <item android:right="@dimen/dp_1" android:left="@dimen/dp_1" android:top="@dimen/dp_1" android:bottom="@dimen/dp_1">
+    <item
+        android:id="@+id/inner_circle_layer"
+        android:bottom="@dimen/dp_1"
+        android:left="@dimen/dp_1"
+        android:right="@dimen/dp_1"
+        android:top="@dimen/dp_1">
         <shape android:shape="oval">
-            <size android:width="@dimen/dp_6" android:height="@dimen/dp_6"/>
+            <size
+                android:width="@dimen/dp_6"
+                android:height="@dimen/dp_6" />
             <solid android:color="@color/colorTheme" /> <!-- 白色 -->
         </shape>
     </item>

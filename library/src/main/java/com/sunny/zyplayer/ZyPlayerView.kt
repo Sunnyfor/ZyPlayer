@@ -1,17 +1,21 @@
 package com.sunny.zyplayer
 
 import android.content.Context
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnClickListener
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.DefaultTimeBar
 import androidx.media3.ui.TimeBar
 import com.google.common.collect.ImmutableList
 import com.sunny.zyplayer.bean.ZyVideoBean
@@ -88,6 +92,26 @@ class ZyPlayerView : ConstraintLayout, Player.Listener, TimeBar.OnScrubListener,
 
         viewBinding.playerView.setOnClickListener(this)
 
+        val drawable = ContextCompat.getDrawable(context, R.drawable.zy_player_controls_thumb)
+
+        val layerDrawable = drawable as LayerDrawable
+
+        val innerShape = layerDrawable.findDrawableByLayerId(R.id.inner_circle_layer) as? GradientDrawable
+
+        innerShape?.setColor(ColorConfig.colorTheme)
+
+        try {
+            val scrubberDrawable = layerDrawable
+            val field = DefaultTimeBar::class.java.getDeclaredField("scrubberDrawable")
+            field.isAccessible = true
+            field.set(viewBinding.playerControl.timeBar, scrubberDrawable)
+            viewBinding.playerControl.timeBar.invalidate() // 强制重绘
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+
+        viewBinding.playerControl.timeBar.setPlayedColor(ColorConfig.colorTheme)
         viewBinding.playerControl.timeBar.addListener(this)
 
         viewBinding.playerControl.ivPlay.setOnClickListener(this)
