@@ -11,6 +11,7 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.PopupWindow
+import com.sunny.zyplayer.ColorConfig
 import com.sunny.zyplayer.R
 import com.sunny.zyplayer.databinding.ZyLayoutVolumeViewBinding
 
@@ -52,6 +53,8 @@ class VolumeViewPopupWindow(context: Context) : PopupWindow(context) {
         width = context.resources.getDimension(com.sunny.zy.R.dimen.dp_35).toInt()
         height = context.resources.getDimension(com.sunny.zy.R.dimen.dp_120).toInt()
         contentView = viewBinding.root
+
+        viewBinding.tvNumber.setTextColor(ColorConfig.colorTheme)
 
         viewBinding.seekBar.onSeekBarChangeListener = object : VerticalSeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: VerticalSeekBar, progress: Int, fromUser: Boolean) {
